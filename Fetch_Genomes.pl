@@ -157,12 +157,18 @@ while(<GENOME_LIST>){#from line 2 onwards
 	my @genome_details = split(/\t/);
 
 	#does this entry belong to the selected phylum?
-	print "Current genome belogns to: $genome_details[$group_column-1], looking for $group\n" if($verbose);
 	$group_match = 1 if($genome_details[$group_column-1] eq $group || $group eq "all");
-
+	
 	#does this entry belong to the selected class?
-	print "Current genome belogns to: $genome_details[$subgroup_column-1], looking for $subgroup\n" if($verbose && defined $subgroup);
 	$subgroup_match = 0 if(defined $subgroup && $genome_details[$subgroup_column-1] ne $subgroup);
+
+	#print some info on the matching of the genomes
+	if(defined $subgroup && !$subgroup && $verbose){
+		print "Current genome belogns to: $genome_details[$subgroup_column-1], looking for $subgroup\n";
+	}elsif($group_match && $verbose){
+		print "Current genome belogns to: $genome_details[$group_column-1], looking for $group\n";
+	}
+
 
 	if($group_match && $subgroup_match){
 		$matching_genomes++;
