@@ -159,9 +159,9 @@ print "Connecting to ftp server\n" if($verbose);
 my $genome_store;
 
 if($debug){
-	$genome_store = Net::FTP->new($ftp, Debug=>1, Passive=>0, Timeout=>240) or die "Cannot connect to ftp server: $ftp\n$@\n";
+	$genome_store = Net::FTP->new($ftp, Debug=>1) or die "Cannot connect to ftp server: $ftp\n$@\n";
 }else{
-	$genome_store = Net::FTP->new($ftp, Debug=>0, Passive=>0, Timeout=>240) or die "Cannot connect to ftp server: $ftp\n$@\n";
+	$genome_store = Net::FTP->new($ftp, Debug=>0) or die "Cannot connect to ftp server: $ftp\n$@\n";
 }
 
 #log to the ftp as an anonymous user
@@ -180,6 +180,9 @@ $genome_store->cwd($genomes_dir) or die "cannot cwd to $genomes_dir ", $genome_s
 #my @available_genomes = $genome_store->ls();
 #my @available_genomes = $genome_store->dir();
 
+
+#passive
+#$genome_store->pasv();
 
 #print CWD
 print $CWD, "\n";
@@ -240,9 +243,12 @@ while(<GENOME_LIST>){#from line 2 onwards
 			
 			#move to genome directory in ftp
 			$genome_store->cwd($genome_to_download) or die "cannot cwd to $genome_to_download ", $genome_store->message;
+#			$genome_store->passive();
 
 			#get files to donwload somehow neither ls nor dir are working. They give me timeouts!
-			my @files_to_download = $genome_store->ls();
+			my @files_to_download = $genome_store->dir() or warn $genome_store->message;
+			
+			print $#files_to_download, "\n";
 
 			my ($faa_file) = grep {$_ =~ ".+\.faa\.gz"} @files_to_download;
 
@@ -256,7 +262,7 @@ while(<GENOME_LIST>){#from line 2 onwards
 
 				#download the files.
 				foreach my $file_to_download (@files_to_download){
-					#print "Changing current working directory to $output_folder/$genome_to_download to begin download\n";
+					print "Changing current working directory to $output_folder/$genome_to_download to begin download\n";
 					local $CWD = "$output_folder/$genome_to_download";
 					my $download_status = $genome_store->get($file_to_download);
 					if(defined $download_status){
